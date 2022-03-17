@@ -11,15 +11,15 @@ import FormTodo from "@/components/FormTodo.vue";
     <div class="flex-1 flex flex-col justify-between pb-1">
       <div class="max-h-100 divide-y-2 divide-cyan-200 p-2">
         <Todo
-          v-for="(todo, index) in paginateTodos()"
+          v-for="todo in paginateTodos()"
           :key="todo.id"
           :id="todo.id"
           :title="todo.title"
           :desc="todo.desc"
           :datetime="todo.datetime"
           :done="todo.isDone"
-          @markDone="markTodoToggle(index)"
-          @delete="deleteTodo(index)"
+          @markDone="markTodoToggle(todo)"
+          @delete="deleteTodo(todo)"
         />
       </div>
       <Pagination
@@ -140,12 +140,13 @@ export default {
       const maxIndex = this.paging.maxContents + this.paging.firstContentIndex
       return this.todos.slice(this.paging.firstContentIndex, maxIndex)
     },
-    markTodoToggle(index){
-      let todoIndex = index + this.paging.firstContentIndex
+    markTodoToggle(todo){
+      const todoIndex = this.todos.indexOf(todo)
       this.todos[todoIndex].isDone = 1-this.todos[todoIndex].isDone
     },
-    deleteTodo(index) {
-      this.todos.splice(index, 1)
+    deleteTodo(todo) {
+      const todoIndex = this.todos.indexOf(todo)
+      this.todos.splice(todoIndex, 1)
       this.changeMaxPages()
     },
     changeMaxPages() {
