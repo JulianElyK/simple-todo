@@ -2,6 +2,8 @@
 import Todo from "@/components/Todo.vue";
 import Pagination from "@/components/Pagination.vue";
 import FormTodo from "@/components/FormTodo.vue";
+import { todostore } from "@/stores/todostore.js";
+import { paginationstore } from "@/stores/paginationstore.js";
 </script>
 
 <template>
@@ -18,8 +20,8 @@ import FormTodo from "@/components/FormTodo.vue";
           :desc="todo.desc"
           :datetime="todo.datetime"
           :done="todo.isDone"
-          @markDone="markTodoToggle(todo)"
-          @delete="deleteTodo(todo)"
+          @markDone="todostore.markTodoToggle(todo)"
+          @delete="todostore.deleteTodo(todo)"
         />
       </div>
       <Pagination
@@ -39,115 +41,28 @@ import FormTodo from "@/components/FormTodo.vue";
 export default {
   data() {
     return {
-      paging: {
-        maxContents: 5,
-        maxPages: 2,
-        firstContentIndex: 0,
-        currentPage: 1
-      },
-      todos: [
-        {
-          id: 1,
-          title: "Do the dishes",
-          desc: "Wash all the dishes until perfect clean",
-          datetime: "2022-02-23T10:00",
-          isDone: 1,
-        },
-        {
-          id: 2,
-          title: "Do shopping",
-          desc: "Buy daily necessities",
-          datetime: "2022-02-24T11:00",
-          isDone: 0,
-        },
-        {
-          id: 3,
-          title: "Do the dishes",
-          desc: "Wash all the dishes until perfect clean",
-          datetime: "2022-02-23T10:00",
-          isDone: 1,
-        },
-        {
-          id: 4,
-          title: "Do shopping",
-          desc: "Buy daily necessities",
-          datetime: "2022-02-24T11:00",
-          isDone: 0,
-        },
-        {
-          id: 5,
-          title: "Do the dishes",
-          desc: "Wash all the dishes until perfect clean",
-          datetime: "2022-02-23T10:00",
-          isDone: 0,
-        },
-        {
-          id: 6,
-          title: "Do the dishes",
-          desc: "Wash all the dishes until perfect clean",
-          datetime: "2022-02-23T10:00",
-          isDone: 1,
-        },
-        {
-          id: 7,
-          title: "Do shopping",
-          desc: "Buy daily necessities",
-          datetime: "2022-02-24T11:00",
-          isDone: 0,
-        },
-        {
-          id: 8,
-          title: "Do the dishes",
-          desc: "Wash all the dishes until perfect clean",
-          datetime: "2022-02-23T10:00",
-          isDone: 1,
-        },
-        {
-          id: 9,
-          title: "Do shopping",
-          desc: "Buy daily necessities",
-          datetime: "2022-02-24T11:00",
-          isDone: 0,
-        },
-        {
-          id: 10,
-          title: "Do the dishes",
-          desc: "Wash all the dishes until perfect clean",
-          datetime: "2022-02-23T10:00",
-          isDone: 0,
-        },
-      ],
+      paging: {},
+      todos: [],
     };
   },
-  // computed: {
-  //  computed is bugged lol
-  // },
+  mounted() {
+    this.todos = todostore.todos
+    this.paging = paginationstore.paging
+  },
+  updated() {
+    this.changeMaxPages()
+  },
   methods: {
     addTodo(title, desc, datetime) {
       var newTodo = {
-        id: this.todos.length + 1,
+        id: todostore.getNextId(),
         title: title,
         desc: desc,
         datetime: datetime,
         isDone: 0
       }
 
-      var todo = Object.assign({}, newTodo)
-      this.todos.unshift(todo)
-      this.changeMaxPages()
-    },
-    paginateTodos() {
-      const maxIndex = this.paging.maxContents + this.paging.firstContentIndex
-      return this.todos.slice(this.paging.firstContentIndex, maxIndex)
-    },
-    markTodoToggle(todo){
-      const todoIndex = this.todos.indexOf(todo)
-      this.todos[todoIndex].isDone = 1-this.todos[todoIndex].isDone
-    },
-    deleteTodo(todo) {
-      const todoIndex = this.todos.indexOf(todo)
-      this.todos.splice(todoIndex, 1)
-      this.changeMaxPages()
+      todostore.addFirstTodo(newTodo)
     },
     changeMaxPages() {
       let pMax = this.paging.maxPages*this.paging.maxContents
@@ -155,6 +70,8 @@ export default {
         this.paging.maxPages ++
       else if (this.todos.length/(pMax-this.paging.maxContents) <= 1)
         this.paging.maxPages --
+        if (this.paging.currentPage > this.paging.maxPages)
+          this.toPage(this.paging.maxPages)
     },
     nextPage() {
       let next = this.paging.firstContentIndex + this.paging.maxContents
@@ -171,9 +88,13 @@ export default {
       this.paging.currentPage --
     },
     toPage(page) {
-      this.paging.firstContent = (page - 1) * this.paging.maxContents
+      this.paging.firstContentIndex = (page - 1) * this.paging.maxContents
       this.paging.currentPage = page
-    }
+    },
+    paginateTodos() {
+      const maxIndex = this.paging.maxContents + this.paging.firstContentIndex
+      return this.todos.slice(this.paging.firstContentIndex, maxIndex)
+    },
   },
 };
 </script>
