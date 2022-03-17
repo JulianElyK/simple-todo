@@ -1,5 +1,7 @@
 <script setup>
 import Todo from "@/components/Todo.vue";
+import Pagination from "@/components/Pagination.vue";
+import FormTodo from "@/components/FormTodo.vue";
 </script>
 
 <template>
@@ -20,57 +22,16 @@ import Todo from "@/components/Todo.vue";
           @delete="deleteTodo(index)"
         />
       </div>
-      <div class="flex flex-row justify-center space-x-2">
-        <input
-          class="hover:cursor-pointer hover:bg-slate-400 w-6 h-6 bg-gray-200 rounded-md"
-          type="button"
-          value="<"
-          @click="backPage"
-        />
-        <input
-          class="hover:cursor-pointer hover:bg-slate-400 w-6 h-6 bg-slate-200 rounded-md"
-          type="button"
-          v-for="i in paging.maxPages"
-          :key="i"
-          :value="i"
-          @click="toPage(i)"
-          :disabled="i == paging.currentPage"
-          :class="{'hover:cursor-auto bg-slate-400': i == paging.currentPage}"
-        />
-        <input
-          class="hover:cursor-pointer hover:bg-slate-400 w-6 h-6 bg-gray-200 rounded-md"
-          type="button"
-          value=">"
-          @click="nextPage"
-        />
-      </div>
+      <Pagination
+        :maxContents="paging.maxContents"
+        :maxPages="paging.maxPages"
+        :currentPage="paging.currentPage"
+        @backPage="backPage"
+        @changePage="toPage"
+        @nextPage="nextPage"
+      />
     </div>
-    <form class="flex flex-col p-2 space-y-1">
-      <input
-        v-model="newTodo.title"
-        class="p-1 rounded-l"
-        type="text"
-        placeholder="Title"
-      />
-      <input
-        v-model="newTodo.desc"
-        class="p-1 rounded-l"
-        type="text"
-        placeholder="Description..."
-      />
-      <input
-        v-model="newTodo.datetime"
-        class="p-1 rounded-l"
-        type="datetime-local"
-      />
-      <button
-        @click="addTodo"
-        class="p-1 rounded-l bg-blue-300 hover:bg-blue-600 tracking-widest"
-        type="submit"
-      >
-        ADD
-      </button>
-    </form>
+    <FormTodo @addTodo="addTodo"/>
   </main>
 </template>
 
@@ -81,7 +42,7 @@ export default {
       paging: {
         maxContents: 5,
         maxPages: 2,
-        firstContent: 0,
+        firstContentIndex: 0,
         currentPage: 1
       },
       todos: [
@@ -156,37 +117,31 @@ export default {
           isDone: 0,
         },
       ],
-      newTodo: {
-        id: null,
-        title: "",
-        desc: "",
-        datetime: "",
-        isDone: 0
-      },
     };
   },
   // computed: {
   //  computed is bugged lol
   // },
   methods: {
-    addTodo(e) {
-      e.preventDefault()
+    addTodo(title, desc, datetime) {
+      var newTodo = {
+        id: this.todos.length + 1,
+        title: title,
+        desc: desc,
+        datetime: datetime,
+        isDone: 0
+      }
 
-      this.newTodo.id = this.todos.length
-
-      var todo = Object.assign({}, this.newTodo)
+      var todo = Object.assign({}, newTodo)
       this.todos.unshift(todo)
       this.changeMaxPages()
-
-      this.newTodo.title = ""
-      this.newTodo.desc = ""
-      this.newTodo.datetime = ""
     },
     paginateTodos() {
-      return this.todos.slice(this.paging.firstContent,this.paging.maxContents)
+      const maxIndex = this.paging.maxContents + this.paging.firstContentIndex
+      return this.todos.slice(this.paging.firstContentIndex, maxIndex)
     },
     markTodoToggle(index){
-      let todoIndex = index + this.paging.firstContent
+      let todoIndex = index + this.paging.firstContentIndex
       this.todos[todoIndex].isDone = 1-this.todos[todoIndex].isDone
     },
     deleteTodo(index) {
@@ -201,17 +156,17 @@ export default {
         this.paging.maxPages --
     },
     nextPage() {
-      let next = this.paging.firstContent + this.paging.maxContents
+      let next = this.paging.firstContentIndex + this.paging.maxContents
       if(next >= this.todos.length)
         return
-      this.paging.firstContent = next
+      this.paging.firstContentIndex = next
       this.paging.currentPage ++
     },
     backPage() {
-      let next = this.paging.firstContent - this.paging.maxContents
+      let next = this.paging.firstContentIndex - this.paging.maxContents
       if(next < 0)
         return
-      this.paging.firstContent = next
+      this.paging.firstContentIndex = next
       this.paging.currentPage --
     },
     toPage(page) {
