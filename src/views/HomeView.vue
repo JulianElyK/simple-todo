@@ -17,6 +17,7 @@ import Todo from "@/components/Todo.vue";
           :datetime="todo.datetime"
           :done="todo.isDone"
           @markDone="markTodoToggle(index)"
+          @delete="deleteTodo(index)"
         />
       </div>
       <div class="flex flex-row justify-center space-x-2">
@@ -187,6 +188,10 @@ export default {
     markTodoToggle(index){
       let todoIndex = index + this.paging.firstContent
       this.todos[todoIndex].isDone = 1-this.todos[todoIndex].isDone
+    },
+    deleteTodo(index) {
+      this.todos.splice(index, 1)
+      this.changeMaxPages()
     },
     changeMaxPages() {
       let pMax = this.paging.maxPages*this.paging.maxContents

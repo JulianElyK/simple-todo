@@ -12,7 +12,10 @@
       <span class="italic">{{ splitDateTime(datetime) }}</span>
     </div>
     <div class="flex flex-col justify-center">
-      <button class="hover:bg-blue-600 bg-sky-200 w-6 h-6 m-1 rounded-md">
+      <button
+        class="hover:bg-blue-600 bg-sky-200 w-6 h-6 m-1 rounded-md"
+        @click="$emit('delete')"
+      >
         X
       </button>
       <button
